@@ -1,0 +1,9 @@
+[project]
+name = "voic-worker"
+version = "0.1.0"
+description = "Local Faster-Whisper worker for Voic"
+requires-python = ">=3.10"
+dependencies = [
+  "faster-whisper>=1.1.0",
+]
+

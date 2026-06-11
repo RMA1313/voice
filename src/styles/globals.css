@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  direction: rtl;
+  background:
+    radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 38%),
+    linear-gradient(180deg, #09090b 0%, #0b0b10 52%, #09090b 100%);
+}
+
+body {
+  font-family: Vazirmatn, system-ui, sans-serif;
+  @apply bg-transparent text-neutral-50 antialiased;
+}
+
+.light {
+  color-scheme: light;
+}
+
+.light body {
+  @apply bg-transparent text-neutral-900;
+}
+
+::selection {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+button, input, textarea, select {
+  font: inherit;
+}

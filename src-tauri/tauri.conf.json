@@ -1,0 +1,22 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Voic",
+  "version": "0.1.0",
+  "identifier": "com.voic.desktop",
+  "build": {
+    "frontendDist": "../dist",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:5173"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Voic",
+        "width": 1440,
+        "height": 960,
+        "resizable": true
+      }
+    ]
+  }
+}
