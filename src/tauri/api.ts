@@ -32,8 +32,8 @@ export async function openAudioDialog(): Promise<string[]> {
   }
 }
 
-export async function startTranscription(path: string, settings: WorkerSettings): Promise<WorkerCompletedPayload> {
-  return invoke<WorkerCompletedPayload>('start_transcription', {
+export async function startTranscription(path: string, settings: WorkerSettings): Promise<void> {
+  return invoke<void>('start_transcription', {
     path,
     settings,
   });

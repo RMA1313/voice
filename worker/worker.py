@@ -5,6 +5,7 @@ import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+import re
 import time
 
 STOP_EVENT = threading.Event()
@@ -96,6 +97,42 @@ def emit_progress(job_id: str, stage: str, progress: int, message: str) -> None:
     emit("progress", job_id, {"stage": stage, "progress": progress, "message": message})
 
 
+def normalize_text(text: str) -> str:
+    return re.sub(r"\s+", " ", text.strip())
+
+
+def is_obvious_loop(text: str) -> bool:
+    normalized = normalize_text(text)
+    if len(normalized) < 24:
+        return False
+    words = normalized.split()
+    if len(words) < 6:
+        return False
+    if len(set(words)) <= max(2, len(words) // 4):
+        return True
+    for size in range(1, min(6, len(words) // 2) + 1):
+        phrase = words[:size]
+        repeats = 1
+        index = size
+        while index + size <= len(words) and words[index:index + size] == phrase:
+            repeats += 1
+            index += size
+        if repeats >= 3 and index >= len(words) * 0.75:
+            return True
+    return False
+
+
+def should_skip_segment(text: str, recent_segments: list[str]) -> bool:
+    normalized = normalize_text(text)
+    if not normalized:
+        return True
+    if is_obvious_loop(normalized):
+        return True
+    if len(recent_segments) >= 2 and all(item == normalized for item in recent_segments[-2:]):
+        return True
+    return False
+
+
 def run_transcription(job_id: str, path: str, settings: Settings) -> dict:
     if WhisperModel is None:
         fail(job_id, "missing_dependency", "نصب Faster-Whisper انجام نشده است.", IMPORT_ERROR or "faster-whisper import failed")
@@ -129,14 +166,19 @@ def run_transcription(job_id: str, path: str, settings: Settings) -> dict:
             beam_size=beam_size,
             best_of=best_of,
             temperature=0.0,
+            condition_on_previous_text=False,
+            no_speech_threshold=0.6,
+            log_prob_threshold=-1.0,
+            compression_ratio_threshold=2.4,
             vad_filter=settings.vad,
             word_timestamps=settings.wordTimestamps,
-            initial_prompt=settings.prompt or None,
+            initial_prompt=(settings.prompt or None),
         )
     except RuntimeError as exc:
         fail(job_id, "cuda_runtime_error", "خطای CUDA رخ داد.", str(exc))
 
     collected = []
+    recent_segment_texts: list[str] = []
     total_duration = 0.0
     last_progress = 15
     last_emit_at = time.monotonic()
@@ -145,7 +187,15 @@ def run_transcription(job_id: str, path: str, settings: Settings) -> dict:
         if STOP_EVENT.is_set():
             emit("cancelled", job_id, {"message": "کاربر عملیات را لغو کرد."})
             raise SystemExit(0)
-        collected.append({"start": segment.start, "end": segment.end, "text": segment.text})
+        segment_text = normalize_text(segment.text)
+        if should_skip_segment(segment_text, recent_segment_texts):
+            continue
+        recent_segment_texts.append(segment_text)
+        if len(recent_segment_texts) > 3:
+            recent_segment_texts.pop(0)
+        segment_payload = {"start": segment.start, "end": segment.end, "text": segment_text}
+        emit("segment", job_id, segment_payload)
+        collected.append(segment_payload)
         total_duration = max(total_duration, segment.end)
         next_progress = min(95, 15 + len(collected))
         now = time.monotonic()

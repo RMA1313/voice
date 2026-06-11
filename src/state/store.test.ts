@@ -43,12 +43,7 @@ describe('voic store', () => {
       prompt: 'سلام',
       settings: { language: 'fa', quality: 'balanced', vad: true, wordTimestamps: false, prompt: 'سلام' },
     });
-    vi.mocked(startTranscription).mockResolvedValue({
-      fullText: 'رونویسی نهایی',
-      segments: [{ start: 0, end: 1, text: 'رونویسی نهایی' }],
-      language: 'fa',
-      duration: 1,
-    });
+    vi.mocked(startTranscription).mockResolvedValue();
 
     await useVoicStore.getState().startTranscriptionJob();
 
@@ -56,8 +51,8 @@ describe('voic store', () => {
       '/abs/path/11.mp3',
       expect.objectContaining({ prompt: 'سلام' }),
     );
-    expect(useVoicStore.getState().transcript).toBe('رونویسی نهایی');
-    expect(useVoicStore.getState().status).toBe('completed');
+    expect(useVoicStore.getState().transcript).toBe('');
+    expect(useVoicStore.getState().status).toBe('running');
   });
 
   it('blocks start when no file is selected', async () => {

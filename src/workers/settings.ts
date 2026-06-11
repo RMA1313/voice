@@ -11,12 +11,13 @@ export type WorkerSettings = {
 };
 
 export function mapSettingsForWorker(settings: Settings, prompt: string): WorkerSettings {
+  const trimmedPrompt = prompt.trim().slice(0, 160);
   return {
     language: settings.language === 'auto' ? undefined : settings.language,
     quality: settings.quality,
     vad: settings.vad,
     wordTimestamps: settings.wordTimestamps,
-    prompt,
+    prompt: trimmedPrompt,
     device: 'cuda',
     compute_type: 'float16',
   };

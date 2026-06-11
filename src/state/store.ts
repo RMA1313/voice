@@ -73,8 +73,7 @@ export const useVoicStore = create<State>()(
         }
         set({ status: 'running', progress: 0, error: null });
         try {
-          const completed = await startTranscription(selectedAudioPath, mapSettingsForWorker(settings, prompt));
-          set({ transcript: completed.fullText, status: 'completed', progress: 100, error: null });
+          await startTranscription(selectedAudioPath, mapSettingsForWorker(settings, prompt));
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
           set({ error: message, status: 'failed', progress: 0 });

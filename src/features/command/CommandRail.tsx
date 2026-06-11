@@ -8,6 +8,7 @@ export function CommandRail() {
   const selectedAudioName = useVoicStore((s) => s.selectedAudioName);
   const status = useVoicStore((s) => s.status);
   const progress = useVoicStore((s) => s.progress);
+  const error = useVoicStore((s) => s.error);
   const startTranscriptionJob = useVoicStore((s) => s.startTranscriptionJob);
   const setPrompt = useVoicStore((s) => s.setPrompt);
   const updateSettings = useVoicStore((s) => s.updateSettings);
@@ -33,7 +34,7 @@ export function CommandRail() {
               : status === 'cancelled'
                 ? 'رونویسی لغو شد'
                 : status === 'failed'
-                  ? 'خطا در رونویسی'
+                  ? error ?? 'خطا در رونویسی'
                   : ''}
         </div>
         <div className="text-xs text-neutral-500">پیشرفت: {progress}%</div>
